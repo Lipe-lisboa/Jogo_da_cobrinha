@@ -17,101 +17,185 @@ altura = 480
 #eixo X tem 640px
 #eixo y tem 280px (no pygame p eixo y é na verticar pra baixo)
 
-x_vermelho = largura / 2
-y_vermelho = altura / 2
 
-x_verde = randint(40, 600)
-y_verde = randint(50, 430)
+#meio da tela
+x_cobra= largura / 2
+y_cobra = altura / 2
+
+x_maca = randint(40, 600)
+y_maca = randint(50, 430)
+
+
+velocidade = 10
+x_controle = velocidade
+y_controle = 0
 
 tela = pygame.display.set_mode(size = (largura, altura))
-fonte = pygame.font.SysFont(
-    name= 'arial',
-    size=40,
-    bold=True,
-    italic=False
-    )
 
 relogio = pygame.time.Clock()
 
+
+fonte_1 = pygame.font.SysFont(
+    name= 'arial',
+    size= 20,
+    bold=True,
+    italic=False
+)
+
+fonte_2 = pygame.font.SysFont(
+    name= 'arial',
+    size= 40,
+    bold=True,
+    italic=False
+)
 pontos = 0
 
 pygame.display.set_caption('Jogo')
 
+comprimento_max_cobra = 5
+lista_corpo_cobra = []
+cabeca = []
+morreu = False
+
+#essa função serve pra 'DESENHAR' a cobra, ela cria um quadradinho pra cada posição da cobra
+def aumenta_cobra(lista_corpo_cobra):
+    for xey in lista_corpo_cobra:
+        pygame.draw.rect(tela, (0,255,0), (xey[0], xey[1], 20,20))
+        
+        
 while True:
     # velocidade do jogo (quantidade de frames/segundo)
     # Quanto maior o numero de frames mais rapido o jogo roda
-    relogio.tick(80)
-    
+    relogio.tick(25)
     
     # preenche a tela com preto (limpa a tela)
-    tela.fill((0,0,0))
+    tela.fill((255,255,255))
     
-    menssagem = f'Pontos {pontos}'
-    
-    texto_formatado = fonte.render(menssagem, True, (255,255,255))
-    
-    #pra cada interação do usuario:
-    for event in pygame.event.get():
+    if morreu == False:       
+        menssagem = f'Pontos: {pontos}'
+        texto_formatado = fonte_2.render(menssagem, True, (0,0,0))
         
-        #Caso o usuario queira sair so jogo:
-        if event.type == QUIT:
-            pygame.quit()
-            exit()
+        #pra cada interação do usuario:
+        for event in pygame.event.get():
+            
+            #Caso o usuario queira sair so jogo:
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+            
         
-       
-        '''
-        # se eu apertei qualquer tecla:
-        if event.type == KEYDOWN:
-            if event.key == K_a:
-                if (x  != 0):
-                    x -= 20
+            
+            # se eu apertei qualquer tecla:
+            # faz com que a cobra continue se movimentando com apenas um click
+            if event.type == KEYDOWN:
+                if event.key == K_a:
+                    
+                    
+                    if x_controle == velocidade:
+                        pass
+                    
+                    else:
+                        x_controle = -velocidade
+                        y_controle = 0 
+                    
+                if event.key == K_d:
+                    if x_controle == -velocidade:
+                        pass
+                    
+                    else:
+                        x_controle = velocidade
+                        y_controle = 0 
+
+                if event.key == K_w:
+                    if y_controle == velocidade:
+                        pass
+                    
+                    else:
+                        x_controle = 0
+                        y_controle = -velocidade 
+
+                if event.key == K_s:
+                    if y_controle == -velocidade:
+                        pass
+                    
+                    else:
+                        x_controle = 0
+                        y_controle = velocidade
+                    
+        x_cobra = x_cobra + x_controle
+        y_cobra = y_cobra + y_controle
+        
+        if x_cobra > 640:
+            x_cobra = 0
+        if x_cobra < 0:
+            x_cobra = 640
+            
+        if y_cobra < 0:
+            y_cobra = 480
+            
+        if y_cobra > 480:
+            y_cobra = 0
+
+        
+        cobra = pygame.draw.rect(tela, (0,255,0), (x_cobra,y_cobra, 20, 20))
+        maca = pygame.draw.rect(tela, (255,0,0), (x_maca, y_maca, 20, 20))
+        
+        # verifica se um objeto colide com outro:
+        if cobra.colliderect(maca):
+            pontos += 1
+            musica_colisao.play(1)
+            x_maca = randint(40, 600)
+            y_maca = randint(50, 430)
+            comprimento_max_cobra += 1
+
+            
+        #pra cada deslocamento da cobra eu adiciono a posição        
+        lista_corpo_cobra.append([x_cobra, y_cobra])
+        
+        
+        # se a ultima posição da cobra (cabeça) estiver na lista quer diser que a cobra
+        # encostou em uma parte do corpo ja existente
+        
+        if lista_corpo_cobra.count([x_cobra, y_cobra]) > 1:
+            print('morreu')
+            morreu = True
+        
+        #esse if serve pra controlar o tamanho da cobra
+        if len(lista_corpo_cobra) > comprimento_max_cobra:
+            
+            #deleta a ultima posição da cobra
+            del lista_corpo_cobra[0]
+        aumenta_cobra(lista_corpo_cobra)
+    
+        #coloca o texto na tela
+        tela.blit(texto_formatado, (450, 40))
+    
+    else:
+        pygame.mixer.music.play(0)
+    
+        menssagem = f'Game Over. Aperte R para reiniciar'
+        texto_formatado = fonte_1.render(menssagem, True, (0,0,0)) 
+        
+        #coloca o texto na tela
+        tela.blit(texto_formatado, (150, 100))
                 
-            if event.key == K_d:
-                if (x != 640):
-                    x += 20
-
-            if event.key == K_w:
-                if (y != 0):
-                    y -= 20
-                     
-
-            if event.key == K_s:
-                if (y != 480):
-                    y += 20 '''
-    
-    if pygame.key.get_pressed()[K_a]:
-        x_vermelho -= 5
-        if (x_vermelho  < 0):
-            x_vermelho = 680    
+        lista_corpo_cobra.clear()
             
-    if pygame.key.get_pressed()[K_d]:
-        x_vermelho += 5
+        x_cobra= largura / 2
+        y_cobra = altura / 2
+            
+        pontos = 0
         
-        if (x_vermelho  > 680):
-            x_vermelho = 0
-            
-    if pygame.key.get_pressed()[K_w]:
-        y_vermelho -= 5
+        for event in pygame.event.get():
         
-        if (y_vermelho  < 0):
-            y_vermelho = 480
-            
-    if pygame.key.get_pressed()[K_s]:
-        y_vermelho += 5
-        
-        if (y_vermelho  > 480):
-            y_vermelho = 0
-            
-    rt_vermelho = pygame.draw.rect(tela, (255,0,0), (x_vermelho, y_vermelho, 40, 50))
-    rt_verde = pygame.draw.rect(tela, (0,255,0), (x_verde,y_verde, 40, 50))
+            #Caso o usuario queira sair so jogo:
+            if event.type == QUIT:
+                pygame.quit()
+                exit()
+                
+            if event.type == KEYDOWN:
+                if event.key == K_r:
+                        morreu = False
     
-    # verifica se um objeto colide com outro:
-    if rt_vermelho.colliderect(rt_verde):
-        pontos += 1
-        musica_colisao.play(1)
-        x_verde = randint(40, 600)
-        y_verde = randint(50, 430)
-    
-    tela.blit(texto_formatado, (450, 40))
     #Pra cada interação o jogo tem que atualisar. Caso contrario ele trava
     pygame.display.update()
